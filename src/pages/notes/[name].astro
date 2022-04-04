@@ -1,0 +1,117 @@
+---
+import { Markdown } from 'astro/components'
+import fs from 'fs/promises'
+
+export async function getStaticPaths() {
+  const notes = await Astro.glob('../../../notes/*.md')
+
+  const pages = await notes.map(async ({ frontmatter, file, ...args }) => {
+    const content = await fs.readFile(file, 'utf8')
+    return {
+      params: { name: frontmatter.slug },
+      props: {
+        frontmatter,
+        content,
+      },
+    }
+  })
+
+  return Promise.all(pages)
+ }
+
+const { content, frontmatter } = Astro?.props
+const { title } = frontmatter
+const resume = frontmatter.resume ? `> ${frontmatter.resume}` : ''
+---
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/style/global.css">
+  <link rel="stylesheet" href="/style/home.css">
+</head>
+
+<body>
+  <main>
+    <header>
+    <div>
+      <h1>{title}</h1>
+    </div>
+    </header>
+    <article>
+      <Markdown content={resume}></Markdown>
+      <Markdown content={content}></Markdown>
+    </article>
+  </main>
+</body>
+</html>
+<style is:global lang="scss">
+p {
+  line-height: 1.75;
+  padding: 0.5rem;
+}
+
+a {
+  text-decoration: none;
+}
+
+section {
+  h1, h2, h3 {
+    background-color: #303030;
+    padding: 1rem 0 1rem 1rem;
+  }
+}
+
+ul {
+  list-style: none;
+  padding: 16px;
+
+  > li {
+    position: relative;
+    padding: 0 1rem;
+
+    p {
+      padding: 0.5rem;
+    }
+
+    &::before {
+      content: "";
+      font-size: 16px;
+      border-left: 8px solid var(--accent-color);
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+    }
+
+    &:nth-child(even) p {
+      background-color: #303030;
+    }
+    &:nth-child(odd) p {
+      background-color: #202020;
+    }
+  }
+}
+
+
+ul > li > ul > {
+  & li:nth-child(even) p {
+    background-color: #303030;
+  }
+  & li:nth-child(odd) p {
+    background-color: #202020;
+  }
+}
+
+ul > li > ul > li::before {
+  border-left: 8px solid rgba(0, 191, 0, 0.252);
+}
+ul > li > ul > li > ul > li::before {
+  border-left: 8px solid rgba(127, 0, 191, 0.25);
+}
+
+.toc {
+  padding: 1rem;
+}
+</style>
